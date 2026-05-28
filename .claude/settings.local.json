@@ -1,0 +1,17 @@
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "jq -r '.tool_input.command' | grep -q 'git push' && cd '/Users/rusty.gregory/Desktop/Claude Projects/ticket-merge' && npm run build && npx gh-pages -d dist 2>/dev/null || true",
+            "timeout": 60,
+            "statusMessage": "Deploying to GitHub Pages..."
+          }
+        ]
+      }
+    ]
+  }
+}
