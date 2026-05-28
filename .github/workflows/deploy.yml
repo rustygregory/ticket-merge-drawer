@@ -25,7 +25,10 @@ jobs:
           with:
             node-version: 20
             cache: npm
-        - run: npm ci
+        - run: |
+            git config --global url."https://${{ github.token }}@github.com/".insteadOf ssh://git@github.com/
+            git config --global url."https://${{ github.token }}@github.com/".insteadOf git@github.com:
+            npm ci
         - run: npm run build
         - uses: actions/upload-pages-artifact@v3
           with:
