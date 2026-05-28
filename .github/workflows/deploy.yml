@@ -27,8 +27,8 @@ jobs:
             cache: npm
         - run: |
             git config --global url."https://${{ secrets.GH_PAT }}@github.com/".insteadOf ssh://git@github.com/
+            git config --global url."https://${{ secrets.GH_PAT }}@github.com/".insteadOf git+ssh://git@github.com/
             git config --global url."https://${{ secrets.GH_PAT }}@github.com/".insteadOf git@github.com:
-            git config --global url."https://${{ secrets.GH_PAT }}@github.com/".insteadOf "https://github.com/"
             npm ci
         - run: npm run build
         - uses: actions/upload-pages-artifact@v3
