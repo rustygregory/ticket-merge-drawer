@@ -39,10 +39,10 @@ const Main = styled.main`
   }
 `
 
-function Shell({ children }) {
+function Shell({ children, tabs, activeTab, onTabClick, onTabClose }) {
   return (
     <Wrapper>
-      <TopBar />
+      <TopBar tabs={tabs} activeTab={activeTab} onTabClick={onTabClick} onTabClose={onTabClose} />
       <Body>
         <SideNav />
         <Main>{children}</Main>

@@ -1,44 +1,83 @@
 import { useState, useEffect } from 'react'
 import { ThemeProvider, DEFAULT_THEME } from '@zendeskgarden/react-theming'
 import Views from './Views'
-import MergeTickets from './MergeTickets'
-import MergeStep2 from './MergeStep2'
+import TicketWorkspace from './TicketWorkspace'
+import MergeDrawer from './MergeDrawer'
 import Notification from './Notification'
 import Shell from './Shell'
 import './App.css'
 
-const ScreenWrapper = ({ visible, children }) => (
-  <div style={{ display: visible ? 'contents' : 'none' }}>
-    {children}
-  </div>
-)
-
 function App() {
-  const [screen, setScreen] = useState('views')
   const [selectedTickets, setSelectedTickets] = useState([])
-  const [destinationTicket, setDestinationTicket] = useState(null)
-  const [mergeStarted, setMergeStarted] = useState(false)
+  const [mergeOpen, setMergeOpen] = useState(false)
   const [showNotification, setShowNotification] = useState(false)
   const [mergedTickets, setMergedTickets] = useState([])
   const [lastMergeCount, setLastMergeCount] = useState(0)
+  const [openTicket, setOpenTicket] = useState(null)
+  const [previousTicketId, setPreviousTicketId] = useState(null)
+  const [topTabs, setTopTabs] = useState([])
+  const [activeTopTab, setActiveTopTab] = useState(null)
 
   const startMerge = () => {
-    setMergeStarted(true)
-    setScreen('merge-step1')
+    setMergeOpen(true)
   }
 
-  const resetMerge = () => {
-    setMergeStarted(false)
-    setSelectedTickets([])
-    setDestinationTicket(null)
-    setScreen('views')
+  const closeMerge = () => {
+    setMergeOpen(false)
   }
 
   const completeMerge = () => {
     setLastMergeCount(selectedTickets.length)
     setMergedTickets(prev => [...prev, ...selectedTickets])
-    resetMerge()
+    setMergeOpen(false)
+    setSelectedTickets([])
     setShowNotification(true)
+  }
+
+  const handleOpenTicket = (ticket) => {
+    setOpenTicket(ticket)
+    if (!topTabs.find(t => t.id === ticket.id)) {
+      setTopTabs(prev => [...prev, ticket])
+    }
+    setActiveTopTab(ticket.id)
+  }
+
+  const handleAddTab = (tab) => {
+    if (!topTabs.find(t => t.id === tab.id)) {
+      setTopTabs(prev => [...prev, tab])
+    }
+    setPreviousTicketId(openTicket?.id || null)
+    setActiveTopTab(tab.id)
+    setOpenTicket(tab)
+  }
+
+  const handleTabClick = (tabId) => {
+    setPreviousTicketId(openTicket?.id || null)
+    setActiveTopTab(tabId)
+    const tab = topTabs.find(t => t.id === tabId)
+    if (tab) {
+      setOpenTicket(tab)
+    }
+  }
+
+  const handleTabClose = (tabId) => {
+    setTopTabs(prev => prev.filter(t => t.id !== tabId))
+    if (activeTopTab === tabId) {
+      const remaining = topTabs.filter(t => t.id !== tabId)
+      if (remaining.length > 0) {
+        setActiveTopTab(remaining[remaining.length - 1].id)
+        setOpenTicket(remaining[remaining.length - 1])
+      } else {
+        setActiveTopTab(null)
+        setOpenTicket(null)
+      }
+    }
+  }
+
+  const handleBack = () => {
+    setOpenTicket(null)
+    setActiveTopTab(null)
+    setTopTabs([])
   }
 
   useEffect(() => {
@@ -50,35 +89,42 @@ function App() {
 
   return (
     <ThemeProvider theme={DEFAULT_THEME}>
-      <Shell>
-        <ScreenWrapper visible={screen === 'views'}>
-          <Views
-            selectedTickets={selectedTickets}
-            setSelectedTickets={setSelectedTickets}
-            mergedTickets={mergedTickets}
-            onMerge={startMerge}
+      <Shell
+        tabs={topTabs}
+        activeTab={activeTopTab}
+        onTabClick={handleTabClick}
+        onTabClose={handleTabClose}
+      >
+        {openTicket ? (
+          <TicketWorkspace
+            ticket={openTicket}
+            onBack={handleBack}
+            onMergeComplete={() => {
+              setLastMergeCount(1)
+              setMergedTickets(prev => [...prev, openTicket.id])
+              handleBack()
+              setShowNotification(true)
+            }}
+            onAddTab={handleAddTab}
+            activeTopTab={activeTopTab}
+            previousTicketId={previousTicketId}
           />
-        </ScreenWrapper>
-        {mergeStarted && (
+        ) : (
           <>
-            <ScreenWrapper visible={screen === 'merge-step1'}>
-              <MergeTickets
+            <Views
+              selectedTickets={selectedTickets}
+              setSelectedTickets={setSelectedTickets}
+              mergedTickets={mergedTickets}
+              onMerge={startMerge}
+              onTicketClick={handleOpenTicket}
+            />
+            {mergeOpen && (
+              <MergeDrawer
                 sourceTickets={selectedTickets}
-                onBack={resetMerge}
-                onNext={(dest) => {
-                  setDestinationTicket(dest)
-                  setScreen('merge-step2')
-                }}
-              />
-            </ScreenWrapper>
-            <ScreenWrapper visible={screen === 'merge-step2'}>
-              <MergeStep2
-                sourceTickets={selectedTickets}
-                destinationTicket={destinationTicket}
-                onBack={() => setScreen('merge-step1')}
+                onClose={closeMerge}
                 onMerge={completeMerge}
               />
-            </ScreenWrapper>
+            )}
           </>
         )}
         {showNotification && (

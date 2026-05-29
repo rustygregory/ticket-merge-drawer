@@ -316,7 +316,7 @@ const tickets = [
   { id: 13, subject: 'Refund issues', status: 'New', requester: 'W. Customer Wilson', date: 'Nov 13, 2025' },
 ]
 
-function Views({ selectedTickets, setSelectedTickets, mergedTickets = [], onMerge }) {
+function Views({ selectedTickets, setSelectedTickets, mergedTickets = [], onMerge, onTicketClick }) {
   const visibleTickets = tickets.filter(t => !mergedTickets.includes(t.id))
   const allSelected = visibleTickets.length > 0 && selectedTickets.length === visibleTickets.length
 
@@ -414,7 +414,7 @@ function Views({ selectedTickets, setSelectedTickets, mergedTickets = [], onMerg
                     />
                   </Td>
                   <Td><StatusBadge $status={ticket.status}>{ticket.status}</StatusBadge></Td>
-                  <Td>{ticket.subject}</Td>
+                  <Td><span style={{ cursor: 'pointer', color: '#1f73b7' }} onClick={() => onTicketClick?.(ticket)}>{ticket.subject}</span></Td>
                   <Td>{ticket.requester}</Td>
                   <Td>{ticket.date}</Td>
                   <Td></Td>

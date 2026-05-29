@@ -32,11 +32,83 @@ const ChevronDown = styled.svg`
   height: 12px;
 `
 
-const AccountName = styled.span`
-  color: #2f3941;
-  font-size: 14px;
-  font-weight: 400;
+const TabsArea = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 4px;
   margin-left: 8px;
+`
+
+const TicketTab = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  border-radius: 6px;
+  font-size: 12px;
+  cursor: pointer;
+  background: ${props => props.$active ? '#2f3941' : '#e9ebed'};
+  color: ${props => props.$active ? '#fff' : '#2f3941'};
+  max-width: 180px;
+`
+
+const TabIcon = styled.span`
+  display: flex;
+  align-items: center;
+`
+
+const TabText = styled.div`
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+`
+
+const TabTitle = styled.span`
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+`
+
+const TabSubtitle = styled.span`
+  font-size: 10px;
+  opacity: 0.7;
+`
+
+const TabDot = styled.span`
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: ${props => props.$active ? '#87929d' : '#68737d'};
+`
+
+const TabCloseBtn = styled.span`
+  cursor: pointer;
+  font-size: 14px;
+  opacity: 0.7;
+  margin-left: 2px;
+
+  &:hover {
+    opacity: 1;
+  }
+`
+
+const AddTabBtn = styled.button`
+  width: 24px;
+  height: 24px;
+  border-radius: 4px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #68737d;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+
+  &:hover {
+    background: #e9ebed;
+  }
 `
 
 const Spacer = styled.div`
@@ -85,7 +157,7 @@ const Avatar = styled.div`
   background: linear-gradient(135deg, #a855f7, #6366f1);
 `
 
-function TopBar() {
+function TopBar({ tabs = [], activeTab, onTabClick, onTabClose }) {
   return (
     <Bar>
       <ZendeskLogo viewBox="0 0 26 26" fill="none">
@@ -100,7 +172,32 @@ function TopBar() {
           <path d="M3 4.5l3 3 3-3" stroke="#2f3941" strokeWidth="1.5" strokeLinecap="round"/>
         </ChevronDown>
       </ProductName>
-      <AccountName>Rusteze</AccountName>
+
+      {tabs.length > 0 && (
+        <TabsArea>
+          {tabs.map(tab => (
+            <TicketTab
+              key={tab.id}
+              $active={activeTab === tab.id}
+              onClick={() => onTabClick?.(tab.id)}
+            >
+              <TabIcon>
+                <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5">
+                  <circle cx="8" cy="8" r="5"/>
+                </svg>
+              </TabIcon>
+              <TabText>
+                <TabTitle>{tab.title || tab.subject}</TabTitle>
+                <TabSubtitle>#{tab.id}</TabSubtitle>
+              </TabText>
+              <TabDot $active={activeTab === tab.id} />
+              <TabCloseBtn onClick={(e) => { e.stopPropagation(); onTabClose?.(tab.id) }}>×</TabCloseBtn>
+            </TicketTab>
+          ))}
+          <AddTabBtn>+</AddTabBtn>
+        </TabsArea>
+      )}
+
       <Spacer />
       <SearchBox>
         <svg width="14" height="14" viewBox="0 0 16 16" fill="#87929d">
